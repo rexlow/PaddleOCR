@@ -40,7 +40,7 @@ def parse_args():
     #params for text detector
     parser.add_argument("--image_dir", type=str)
     parser.add_argument("--det_algorithm", type=str, default='DB')
-    parser.add_argument("--det_model_dir", type=str)
+    parser.add_argument("--det_model_dir", type=str, default="/root/PaddleOCR/models/ch_det_r50_vd_db/")
     parser.add_argument("--det_max_side_len", type=float, default=960)
 
     #DB parmas
@@ -55,7 +55,7 @@ def parse_args():
 
     #params for text recognizer
     parser.add_argument("--rec_algorithm", type=str, default='CRNN')
-    parser.add_argument("--rec_model_dir", type=str)
+    parser.add_argument("--rec_model_dir", type=str, default="/root/PaddleOCR/models/ch_rec_r34_vd_crnn/")
     parser.add_argument("--rec_image_shape", type=str, default="3, 32, 320")
     parser.add_argument("--rec_char_type", type=str, default='ch')
     parser.add_argument("--rec_batch_num", type=int, default=30)
