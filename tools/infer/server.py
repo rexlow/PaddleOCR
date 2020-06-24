@@ -11,49 +11,57 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from tools.infer.utility import draw_ocr_box_txt
-from tools.infer.utility import draw_ocr
-from PIL import Image
-from ppocr.utils.utility import get_image_file_list
-import time
-import math
-import numpy as np
-import copy
-import tools.infer.predict_rec as predict_rec
-import tools.infer.predict_det as predict_det
-from tools.infer.predict_system import sorted_boxes, TextSystem
-import cv2
-from ppocr.utils.utility import initial_logger
-import tools.infer.utility as utility
 import os
 import sys
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(__dir__)
 sys.path.append(os.path.abspath(os.path.join(__dir__, '../..')))
 
-logger = initial_logger()
+from ppocr.utils.utility import get_image_file_list
+import time
+import math
+import numpy as np
+import copy
+import cv2
+from ppocr.utils.utility import initial_logger
+import tools.infer.utility as utility
+import os
+import sys
+import tornado.web
+import tornado.ioloop
+from PIL import Image
+from io import BytesIO
+__dir__ = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(__dir__)
+sys.path.append(os.path.abspath(os.path.join(__dir__, '../..')))
 
-def main(args):
-  image_file_list = get_image_file_list(args.image_dir)
-  text_sys = TextSystem(args)
-  for image_file in image_file_list:
-    img = cv2.imread(image_file)
-    if img is None:
-      logger.info("error in loading image:{}".format(image_file))
-      continue
-    starttime = time.time()
-    dt_boxes, rec_res = text_sys(img)
-    elapse = time.time() - starttime
-    print("Predict time of %s: %.3fs" % (image_file, elapse))
-    dt_num = len(dt_boxes)
-    dt_boxes_final = []
-    for dno in range(dt_num):
-      text, score = rec_res[dno]
-      if score >= 0.5:
-        text_str = "%s, %.3f" % (text, score)
-        print(text_str)
-        dt_boxes_final.append(dt_boxes[dno])
+logger = initial_logger()
+from tools.infer.predict_system import TextSystem, sorted_boxes
+
+text_sys = TextSystem(utility.parse_args())
+
+class MainHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        self.write("Hello, world")
+
+    def post(self):
+      bytesData = self.request.files['file'][0]['body']
+      image = Image.open(BytesIO(bytesData))
+      npImage = np.array(image)
+      dt_boxes, rec_res = text_sys(npImage)
+      print(dt_boxes, rec_res)
+
+
+def make_app():
+    return tornado.web.Application([
+        (r"/", MainHandler),
+    ])
 
 
 if __name__ == "__main__":
-    main(utility.parse_args())
+    port = 5000
+    app = make_app()
+    app.listen(port)
+    print("Paddle server running at port ", port)
+    tornado.ioloop.IOLoop.current().start()
