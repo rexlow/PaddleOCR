@@ -70,7 +70,6 @@ class MainHandler(tornado.web.RequestHandler):
       npImage = np.array(image)
       starttime = time.time()
       dt_boxes, rec_res = text_sys(npImage)
-      print(rec_res)
       duration = time.time() - starttime
       self.finish(loads(JSONEncoder().encode({
         "duration": duration,

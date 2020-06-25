@@ -3,3 +3,4 @@ imgaug
 pyclipper
 lmdb
 tornado
+simplejson
