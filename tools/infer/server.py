@@ -68,10 +68,14 @@ class MainHandler(tornado.web.RequestHandler):
       bytesData = self.request.files['file'][0]['body']
       image = Image.open(BytesIO(bytesData))
       npImage = np.array(image)
+      starttime = time.time()
       dt_boxes, rec_res = text_sys(npImage)
+      print(rec_res)
+      duration = time.time() - starttime
       self.finish(loads(JSONEncoder().encode({
+        "duration": duration,
         "boxes": dt_boxes,
-        "data": rec_res
+        "data": rec_res,
       })))
 
 
