@@ -23,6 +23,10 @@ import math
 import numpy as np
 import copy
 import cv2
+from json import loads
+import simplejson as json
+from bson import ObjectId
+from decimal import Decimal
 from ppocr.utils.utility import initial_logger
 import tools.infer.utility as utility
 import os
@@ -40,6 +44,21 @@ from tools.infer.predict_system import TextSystem, sorted_boxes
 
 text_sys = TextSystem(utility.parse_args())
 
+class JSONEncoder(json.JSONEncoder):
+
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        if isinstance(o, np.ndarray):
+            return list(o)
+        if isinstance(o, np.float32):
+            return float(o)
+        if isinstance(o, Decimal):
+            return float(o)
+        if isinstance(o, np.int64):
+            return int(o)
+        return json.JSONEncoder.default(self, o)
+
 class MainHandler(tornado.web.RequestHandler):
 
     def get(self):
@@ -50,7 +69,10 @@ class MainHandler(tornado.web.RequestHandler):
       image = Image.open(BytesIO(bytesData))
       npImage = np.array(image)
       dt_boxes, rec_res = text_sys(npImage)
-      print(dt_boxes, rec_res)
+      self.finish(loads(JSONEncoder().encode({
+        "boxes": dt_boxes,
+        "data": rec_res
+      })))
 
 
 def make_app():
