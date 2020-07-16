@@ -75,6 +75,7 @@ class TextSystem(object):
     def __call__(self, img):
         ori_im = img.copy()
         dt_boxes, elapse = self.text_detector(img)
+        print("dt_boxes num : {}, elapse : {}".format(len(dt_boxes), elapse))
         if dt_boxes is None:
             return None, None
         img_crop_list = []
@@ -86,6 +87,7 @@ class TextSystem(object):
             img_crop = self.get_rotate_crop_image(ori_im, tmp_box)
             img_crop_list.append(img_crop)
         rec_res, elapse = self.text_recognizer(img_crop_list)
+        print("rec_res num  : {}, elapse : {}".format(len(rec_res), elapse))
         # self.print_draw_crop_rec_res(img_crop_list, rec_res)
         return dt_boxes, rec_res
 
@@ -115,12 +117,16 @@ def main(args):
     image_file_list = get_image_file_list(args.image_dir)
     text_sys = TextSystem(args)
     is_visualize = True
+    tackle_img_num = 0
     for image_file in image_file_list:
         img = cv2.imread(image_file)
         if img is None:
             logger.info("error in loading image:{}".format(image_file))
             continue
         starttime = time.time()
+        tackle_img_num += 1	
+        if not args.use_gpu and args.enable_mkldnn and tackle_img_num % 30 == 0:	
+            text_sys = TextSystem(args)
         dt_boxes, rec_res = text_sys(img)
         elapse = time.time() - starttime
         print("Predict time of %s: %.3fs" % (image_file, elapse))

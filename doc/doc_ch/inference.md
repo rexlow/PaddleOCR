@@ -1,5 +1,5 @@
 
-# 基于预测引擎推理
+# 基于Python预测引擎推理
 
 inference 模型（fluid.io.save_inference_model保存的模型）
 一般是模型训练完成后保存的固化模型，多用于预测部署。
@@ -8,7 +8,7 @@ inference 模型（fluid.io.save_inference_model保存的模型）
 
 接下来首先介绍如何将训练的模型转换成inference模型，然后将依次介绍文本检测、文本识别以及两者串联基于预测引擎推理。
 
-## 训练模型转inference模型
+## 一、训练模型转inference模型
 ### 检测模型转inference模型
 
 下载超轻量级中文检测模型：
@@ -17,6 +17,11 @@ wget -P ./ch_lite/ https://paddleocr.bj.bcebos.com/ch_models/ch_det_mv3_db.tar &
 ```
 上述模型是以MobileNetV3为backbone训练的DB算法，将训练好的模型转换成inference模型只需要运行如下命令：
 ```
+# -c后面设置训练算法的yml配置文件
+# -o配置可选参数
+# Global.checkpoints参数设置待转换的训练模型地址，不用添加文件后缀.pdmodel，.pdopt或.pdparams。
+# Global.save_inference_dir参数设置转换的模型将保存的地址。
+
 python3 tools/export_model.py -c configs/det/det_mv3_db.yml -o Global.checkpoints=./ch_lite/det_mv3_db/best_accuracy Global.save_inference_dir=./inference/det_db/
 ```
 转inference模型时，使用的配置文件和训练时使用的配置文件相同。另外，还需要设置配置文件中的Global.checkpoints、Global.save_inference_dir参数。
@@ -37,6 +42,11 @@ wget -P ./ch_lite/ https://paddleocr.bj.bcebos.com/ch_models/ch_rec_mv3_crnn.tar
 
 识别模型转inference模型与检测的方式相同，如下：
 ```
+# -c后面设置训练算法的yml配置文件
+# -o配置可选参数
+# Global.checkpoints参数设置待转换的训练模型地址，不用添加文件后缀.pdmodel，.pdopt或.pdparams。
+# Global.save_inference_dir参数设置转换的模型将保存的地址。
+
 python3 tools/export_model.py -c configs/rec/rec_chinese_lite_train.yml -o Global.checkpoints=./ch_lite/rec_mv3_crnn/best_accuracy \
         Global.save_inference_dir=./inference/rec_crnn/
 ```
@@ -50,7 +60,7 @@ python3 tools/export_model.py -c configs/rec/rec_chinese_lite_train.yml -o Globa
   └─  params    识别inference模型的参数文件
 ```
 
-## 文本检测模型推理
+## 二、文本检测模型推理
 
 下面将介绍超轻量中文检测模型推理、DB文本检测模型推理和EAST文本检测模型推理。默认配置是根据DB文本检测模型推理设置的。由于EAST和DB算法差别很大，在推理时，需要通过传入相应的参数适配EAST文本检测算法。
 
@@ -116,7 +126,7 @@ python3 tools/export_model.py -c configs/det/det_r50_vd_east.yml -o Global.check
 EAST文本检测模型推理，需要设置参数det_algorithm，指定检测算法类型为EAST，可以执行如下命令：
 
 ```
-python3 tools/infer/predict_det.py --image_dir="./doc/imgs_en/img_10.jpg" --det_model_dir="./inference/det_east/" --det_algorithm="EAST"
+python3 tools/infer/predict_det.py --det_algorithm="EAST" --image_dir="./doc/imgs_en/img_10.jpg" --det_model_dir="./inference/det_east/"
 ```
 可视化文本检测结果默认保存到 ./inference_results 文件夹里面，结果文件的名称前缀为'det_res'。结果示例如下：
 
@@ -125,7 +135,7 @@ python3 tools/infer/predict_det.py --image_dir="./doc/imgs_en/img_10.jpg" --det_
 **注意**：本代码库中EAST后处理中NMS采用的Python版本，所以预测速度比较耗时。如果采用C++版本，会有明显加速。
 
 
-## 文本识别模型推理
+## 三、文本识别模型推理
 
 下面将介绍超轻量中文识别模型推理、基于CTC损失的识别模型推理和基于Attention损失的识别模型推理。对于中文文本识别，建议优先选择基于CTC损失的识别模型，实践中也发现基于Attention损失的效果不如基于CTC损失的识别模型。此外，如果训练时修改了文本的字典，请参考下面的自定义文本识别字典的推理。
 
@@ -199,7 +209,7 @@ dict_character = list(self.character_str)
 python3 tools/infer/predict_rec.py --image_dir="./doc/imgs_words_en/word_336.png" --rec_model_dir="./your inference model" --rec_image_shape="3, 32, 100" --rec_char_type="en" --rec_char_dict_path="your text dict path"
 ```
 
-## 文本检测、识别串联推理
+## 四、文本检测、识别串联推理
 
 ### 1.超轻量中文OCR模型推理
 

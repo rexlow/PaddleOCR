@@ -1,6 +1,6 @@
-## Text recognition
+## TEXT RECOGNITION
 
-### Data preparation
+### DATA PREPARATION
 
 
 PaddleOCR supports two data formats: `LMDB` is used to train public data and evaluation algorithms; `general data` is used to train your own data:
@@ -10,7 +10,7 @@ Please organize the dataset as follows:
 The default storage path for training data is `PaddleOCR/train_data`, if you already have a dataset on your disk, just create a soft link to the dataset directory:
 
 ```
-ln -sf <path/to/dataset> <path/to/paddle_detection>/train_data/dataset
+ln -sf <path/to/dataset> <path/to/paddle_ocr>/train_data/dataset
 ```
 
 
@@ -96,7 +96,7 @@ You can use them if needed.
 
 To customize the dict file, please modify the `character_dict_path` field in `configs/rec/rec_icdar15_train.yml` and set `character_type` to `ch`.
 
-### Start training
+### TRAINING
 
 PaddleOCR provides training scripts, evaluation scripts, and prediction scripts. In this section, the CRNN recognition model will be used as an example:
 
@@ -158,15 +158,29 @@ Global:
   ...
   # Modify reader type
   reader_yml: ./configs/rec/rec_chinese_reader.yml
+  # Whether to use data augmentation
+  distort: true
+  # Whether to recognize spaces
+  use_space_char: true
   ...
 
 ...
+
+Optimizer:
+  ...
+  # Add learning rate decay strategy
+  decay:
+    function: cosine_decay
+    # Each epoch contains iter number
+    step_each_epoch: 20
+    # Total epoch number
+    total_epoch: 1000
 ```
 **Note that the configuration file for prediction/evaluation must be consistent with the training.**
 
 
 
-### Evaluation
+### EVALUATION
 
 The evaluation data set can be modified via `configs/rec/rec_icdar15_reader.yml` setting of `label_file_path` in EvalReader.
 
@@ -176,7 +190,7 @@ export CUDA_VISIBLE_DEVICES=0
 python3 tools/eval.py -c configs/rec/rec_chinese_lite_train.yml -o Global.checkpoints={path/to/weights}/best_accuracy
 ```
 
-### Prediction
+### PREDICTION
 
 * Training engine prediction
 
