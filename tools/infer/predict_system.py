@@ -144,7 +144,10 @@ def main(args):
             text, score = rec_res[dno]
             if score >= drop_score:
                 text_str = "%s, %.3f" % (text, score)
-                print(text_str)
+                try:
+                    print(text_str)
+                except Exception:
+                    pass
 
         if is_visualize:
             image = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
